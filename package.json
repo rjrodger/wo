@@ -1,0 +1,34 @@
+{
+  "name": "wo",
+  "description": "wo",
+  "version": "0.1.0",
+  "repository": "git://github.com/rjrodger/wo",
+  "main": "lib/index.js",
+  "keywords": [
+    "HTTP",
+    "proxy",
+    "handler",
+    "hapi",
+    "plugin"
+  ],
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "dependencies": {
+    "boom": "2.X.X",
+    "hoek": "2.X.X",
+    "joi": "6.X.X",
+    "wreck": "6.X.X"
+  },
+  "devDependencies": {
+    "code": "2.X.X",
+    "hapi": "11.X.X",
+    "inert": "3.X.X",
+    "lab": "7.X.X"
+  },
+  "scripts": {
+    "test": "lab -a code -t 100 -L",
+    "test-cov-html": "lab -a code -r html -o coverage.html"
+  },
+  "license": "BSD-3-Clause"
+}
