@@ -23,7 +23,7 @@ server.register(require('wo'),console.log)
 server.route({ 
   method: 'GET', path: '/api/ping', 
   handler: {
-    wo: {}
+    wo: {} // look ma - no config!
   }
 })
 
