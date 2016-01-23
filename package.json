@@ -1,7 +1,7 @@
 {
   "name": "wo",
   "description": "wo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": "git://github.com/rjrodger/wo",
   "main": "lib/index.js",
   "keywords": [
@@ -18,6 +18,7 @@
     "boom": "2.X.X",
     "hoek": "2.X.X",
     "joi": "6.X.X",
+    "sneeze": "^0.1.0",
     "wreck": "6.X.X"
   },
   "devDependencies": {
@@ -30,5 +31,10 @@
     "test": "lab -a code -t 100 -L",
     "test-cov-html": "lab -a code -r html -o coverage.html"
   },
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "files": [
+    "lib/index.js",
+    "LICENSE",
+    "README.md"
+  ]
 }

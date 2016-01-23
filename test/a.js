@@ -11,10 +11,9 @@ server.register({
   register:require('..'),
   options:{
     route: { path: '/api/ping' },
-    port: 8001
   }
 },console.log)
-  
+ 
 server.route({ 
   method: 'GET', path: '/api/ping', 
   handler: function( req, reply ){

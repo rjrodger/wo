@@ -11,7 +11,6 @@ server.register({
   register:require('..'),
   options:{
     route: { path: '/api/ping' },
-    port: 8002
   }
 },console.log)
   
