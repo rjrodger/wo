@@ -7,7 +7,7 @@ const Net = require('net');
 const Zlib = require('zlib');
 const Boom = require('boom');
 const Code = require('code');
-const H2o2 = require('..');
+const Wo = require('..');
 const Hapi = require('hapi');
 const Hoek = require('hoek');
 const Lab = require('lab');
@@ -27,15 +27,31 @@ const describe = lab.describe;
 const it = lab.it;
 const expect = Code.expect;
 
+lab.before((done) => {
+  Sneeze({base:true, silent:true}).join({base:true});
+  setTimeout(done, 222);
+});
 
-describe('H2o2', () => {
+describe('Wo', () => {
 
     const provisionServer = function (options) {
-        Sneeze({base:true});
-
         const server = new Hapi.Server();
         server.connection(options);
-        server.register(H2o2, Hoek.ignore);
+        server.register({
+          register:Wo,
+          options: {sneeze: {silent:true}}
+        }, Hoek.ignore);
+        return server;
+    };
+
+    const provisionUpstream = function (options, route) {
+        const server = new Hapi.Server();
+        server.connection(options);
+        server.register({
+          register:Wo,
+          options: {route: route, sneeze: {silent:true}}
+        }, Hoek.ignore);
+        server.route(route)
         return server;
     };
 
@@ -120,24 +136,6 @@ describe('H2o2', () => {
                 }
             });
         }).to.throw('Cannot proxy if payload is parsed or if output is not stream or data');
-        done();
-    });
-
-    it('throws when setup with invalid options', (done) => {
-
-        const server = provisionServer();
-        expect(() => {
-
-            server.route({
-                method: 'POST',
-                path: '/',
-                config: {
-                    handler: {
-                        wo: { some: 'key' }
-                    }
-                }
-            });
-        }).to.throw(/\"value\" must contain at least one of \[host, mapUri, uri\]/);
         done();
     });
 
@@ -1345,47 +1343,66 @@ describe('H2o2', () => {
         });
     });
 
-    it('ignores when no upstream caching headers to pass', (done) => {
+    it('ignores when no upstream caching headers to pass', { parallel: false}, (done) => {
+            setTimeout( () => {
 
-        const upstream = Http.createServer((req, res) => {
+        const upstream = provisionUpstream(
+            {}, 
+            {path:'/', method:'get', handler: (req, reply) => { reply('foo') }});
 
-            res.end('not much');
+        upstream.start(() => {
+
+            setTimeout( () => {
+                const server = provisionServer();
+
+                server.route({ 
+                    method: 'get', 
+                    path: '/', 
+                    handler: {wo: {ttl: 'upstream' }}
+                });
+
+                server.start( () => {
+                    setTimeout( () => {
+                        server.inject('/', (res) => {
+
+                            expect(res.statusCode).to.equal(200);
+                            expect(res.headers['cache-control']).to.equal('no-cache');
+                            done();
+                        });
+                    }, 555 );
+                })
+
+            }, 555 );
         });
-
-        upstream.listen(0, () => {
-
-            const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { wo: { host: 'localhost', port: upstream.address().port, ttl: 'upstream' } } });
-
-            server.inject('/', (res) => {
-
-                expect(res.statusCode).to.equal(200);
-                expect(res.headers['cache-control']).to.equal('no-cache');
-                done();
-            });
-        });
+            }, 555 );
     });
 
-    it('ignores when upstream caching header is invalid', (done) => {
+    it('ignores when upstream caching header is invalid', { parallel: false}, (done) => {
+            setTimeout( () => {
 
-        const upstream = Http.createServer((req, res) => {
+        const upstream = provisionUpstream(
+            {}, 
+            {path:'/', method:'get', handler: (req, reply) => { 
+              reply('not much')
+                .header( 'cache-control', 'some crap that does not work');
+            }});
 
-            res.writeHeader(200, { 'cache-control': 'some crap that does not work' });
-            res.end('not much');
-        });
+      upstream.start(() => {
+          const server = provisionServer();
+          server.route({ method: 'GET', path: '/', handler: { wo: { ttl: 'upstream' } } });
 
-        upstream.listen(0, () => {
-
-            const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { wo: { host: 'localhost', port: upstream.address().port, ttl: 'upstream' } } });
-
-            server.inject('/', (res) => {
+          server.start(() => {
+            setTimeout(() => {
+              server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['cache-control']).to.equal('no-cache');
                 done();
             });
-        });
+          },333);
+          });
+      });
+            }, 555 );
     });
 
     it('overrides response code with 304', (done) => {

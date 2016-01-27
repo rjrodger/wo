@@ -7,7 +7,10 @@ server.connection({
   port: 8000
 })
 
-server.register(require('..'),console.log)
+server.register({
+  register: require('..'),
+  options: {sneeze: {silent: false}}
+}, console.log)
 
 server.route({ 
   method: 'GET', path: '/api/ping', 

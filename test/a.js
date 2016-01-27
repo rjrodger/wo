@@ -10,7 +10,8 @@ server.connection({
 server.register({
   register:require('..'),
   options:{
-    route: { path: '/api/ping' },
+    route: {path: '/api/ping'},
+    sneeze: {silent: false}
   }
 },console.log)
  

@@ -1,1 +1,1 @@
-require('sneeze')({base:true}).join()
+require('sneeze')({base:true,silent:false}).join()
