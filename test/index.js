@@ -2,7 +2,6 @@
 // Load modules
 
 const Fs = require('fs');
-const Http = require('http');
 const Net = require('net');
 const Zlib = require('zlib');
 const Boom = require('boom');
@@ -12,7 +11,6 @@ const Hapi = require('hapi');
 const Hoek = require('hoek');
 const Lab = require('lab');
 const Wreck = require('wreck');
-const Sneeze = require('sneeze');
 
 
 // Declare internals
@@ -28,30 +26,39 @@ const it = lab.it;
 const expect = Code.expect;
 
 lab.before((done) => {
-  Sneeze({base:true, silent:true}).join({base:true});
-  setTimeout(done, 222);
+
+    Wo.start({ isbase: true, silent: true, ready: done });
 });
 
 describe('Wo', () => {
 
-    const provisionServer = function (options) {
+    const provisionServer = function (mark, options) {
+
+        mark = mark || 's0';
         const server = new Hapi.Server();
         server.connection(options);
         server.register({
-          register:Wo,
-          options: {sneeze: {silent:true}}
+            register: Wo,
+            options: { sneeze: {
+                silent: true,
+                identifier: mark,
+                swim: {
+                    interval: 50
+                }
+            } }
         }, Hoek.ignore);
         return server;
     };
 
-    const provisionUpstream = function (options, route) {
+    const provisionUpstream = function (mark, options, route) {
+
         const server = new Hapi.Server();
         server.connection(options);
         server.register({
-          register:Wo,
-          options: {route: route, sneeze: {silent:true}}
+            register: Wo,
+            options: { route: route, sneeze: { silent: true, identifier: mark } }
         }, Hoek.ignore);
-        server.route(route)
+        server.route(route);
         return server;
     };
 
@@ -65,7 +72,7 @@ describe('Wo', () => {
             done();
         };
 
-        const server = provisionServer();
+        const server = provisionServer('s-om');
         server.route({ method: 'GET', path: '/', handler: { wo: { host: 'localhost', maxSockets: 213 } } });
         server.inject('/', (res) => { });
     });
@@ -222,7 +229,7 @@ describe('Wo', () => {
         upstream.route({ method: 'GET', path: '/headers', handler: headers });
         upstream.start(() => {
 
-            const server = provisionServer({ routes: { cors: true } });
+            const server = provisionServer('s-fuh',{ routes: { cors: true } });
             server.route({ method: 'GET', path: '/headers', handler: { wo: { host: 'localhost', port: upstream.info.port, passThrough: true } } });
 
             server.inject('/headers', (res) => {
@@ -235,29 +242,6 @@ describe('Wo', () => {
             });
         });
     });
-
-    // it('overrides upstream cors headers', (done) => {
-    //
-    //     const headers = function (request, reply) {
-    //
-    //         reply().header('access-control-allow-headers', 'Invalid, List, Of, Values');
-    //     };
-    //
-    //     const upstream = new Hapi.Server();
-    //     upstream.connection();
-    //     upstream.route({ method: 'GET', path: '/', handler: headers });
-    //     upstream.start(function () {
-    //
-    //         const server = provisionServer({ routes: { cors: { credentials: true } } });
-    //         server.route({ method: 'GET', path: '/', handler: { wo: { host: 'localhost', port: upstream.info.port, passThrough: true } } });
-    //
-    //         server.inject('/', (res) => {
-    //
-    //             expect(res.headers['access-control-allow-headers']).to.equal('Invalid, List, Of, Values');
-    //             done();
-    //         });
-    //     });
-    // });
 
     it('merges upstream headers', (done) => {
 
@@ -781,7 +765,7 @@ describe('Wo', () => {
                 return callback(null, 'http://127.0.0.1:' + upstream.info.port + '/', headers);
             };
 
-            const server = provisionServer({ host: '127.0.0.1' });
+            const server = provisionServer('s-axfh', { host: '127.0.0.1' });
             server.route({ method: 'GET', path: '/', handler: { wo: { mapUri: mapUri, xforward: true } } });
 
             server.start(() => {
@@ -1245,7 +1229,7 @@ describe('Wo', () => {
 
         upstream.start(() => {
 
-            const server = provisionServer({ routes: { timeout: { server: 8 } } });
+            const server = provisionServer('s-tols', { routes: { timeout: { server: 8 } } });
             server.route({ method: 'GET', path: '/timeout2', handler: { wo: { host: 'localhost', port: upstream.info.port, timeout: 2 } } });
             server.inject('/timeout2', (res) => {
 
@@ -1273,7 +1257,7 @@ describe('Wo', () => {
 
         upstream.start(() => {
 
-            const server = provisionServer({ routes: { timeout: { server: 5 } } });
+            const server = provisionServer('s-tolp', { routes: { timeout: { server: 5 } } });
             server.route({ method: 'GET', path: '/timeout1', handler: { wo: { host: 'localhost', port: upstream.info.port, timeout: 15 } } });
             server.inject('/timeout1', (res) => {
 
@@ -1343,66 +1327,78 @@ describe('Wo', () => {
         });
     });
 
-    it('ignores when no upstream caching headers to pass', { parallel: false}, (done) => {
-            setTimeout( () => {
+
+    it('ignores when no upstream caching headers to pass', { parallel: false }, (done) => {
 
         const upstream = provisionUpstream(
-            {}, 
-            {path:'/', method:'get', handler: (req, reply) => { reply('foo') }});
+            'u-nuch',
+            {},
+            {
+                path: '/nuch',
+                method: 'get',
+                handler: (req, reply) => {
+
+                    reply('foo');
+                }
+            });
 
         upstream.start(() => {
 
-            setTimeout( () => {
-                const server = provisionServer();
+            const server = provisionServer('s-nuch');
 
-                server.route({ 
-                    method: 'get', 
-                    path: '/', 
-                    handler: {wo: {ttl: 'upstream' }}
-                });
+            server.route({
+                method: 'get',
+                path: '/nuch',
+                handler: { wo: { ttl: 'upstream' } }
+            });
 
-                server.start( () => {
-                    setTimeout( () => {
-                        server.inject('/', (res) => {
+            server.start( () => {
 
-                            expect(res.statusCode).to.equal(200);
-                            expect(res.headers['cache-control']).to.equal('no-cache');
-                            done();
-                        });
-                    }, 555 );
-                })
+                setTimeout( () => {
 
-            }, 555 );
+                    server.inject('/nuch', (res) => {
+
+                        expect(res.statusCode).to.equal(200);
+                        expect(res.headers['cache-control']).to.equal('no-cache');
+                        done();
+                    });
+                }, 333 );
+            });
         });
-            }, 555 );
     });
 
-    it('ignores when upstream caching header is invalid', { parallel: false}, (done) => {
-            setTimeout( () => {
+
+    it('ignores when upstream caching header is invalid', { parallel: false }, (done) => {
 
         const upstream = provisionUpstream(
-            {}, 
-            {path:'/', method:'get', handler: (req, reply) => { 
-              reply('not much')
-                .header( 'cache-control', 'some crap that does not work');
-            }});
+            'u-iuchi',
+            {},
+            {
+                path:'/iuchi', method:'get', handler: (req, reply) => {
 
-      upstream.start(() => {
-          const server = provisionServer();
-          server.route({ method: 'GET', path: '/', handler: { wo: { ttl: 'upstream' } } });
-
-          server.start(() => {
-            setTimeout(() => {
-              server.inject('/', (res) => {
-
-                expect(res.statusCode).to.equal(200);
-                expect(res.headers['cache-control']).to.equal('no-cache');
-                done();
+                    reply('not much')
+                    .header( 'cache-control', 'some crap that does not work');
+                }
             });
-          },333);
-          });
-      });
-            }, 555 );
+
+        upstream.start(() => {
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/iuchi', handler: { wo: { ttl: 'upstream' } } });
+
+            server.start(() => {
+
+                setTimeout(() => {
+
+                    server.inject('/iuchi', (res) => {
+
+                        expect(res.statusCode).to.equal(200);
+                        expect(res.headers['cache-control']).to.equal('no-cache');
+                        done();
+                    });
+                },333);
+            });
+        });
     });
 
     it('overrides response code with 304', (done) => {
@@ -1484,10 +1480,10 @@ describe('Wo', () => {
             const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { wo: { host: 'localhost', port: upstream.info.port, acceptEncoding: true, passThrough: true } } });
 
-            server.inject({ url: '/', headers: { 'accept-encoding': '*/*' } }, (res) => {
+            server.inject({ url: '/', headers: { 'accept-encoding': '*' + '/' + '*' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
-                expect(res.payload).to.equal('*/*');
+                expect(res.payload).to.equal('*' + '/' + '*');
                 done();
             });
         });
@@ -1508,7 +1504,7 @@ describe('Wo', () => {
             const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { wo: { host: 'localhost', port: upstream.info.port, acceptEncoding: false, passThrough: true } } });
 
-            server.inject({ url: '/', headers: { 'accept-encoding': '*/*' } }, (res) => {
+            server.inject({ url: '/', headers: { 'accept-encoding': '*' + '/' + '*' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.equal('');
@@ -1667,7 +1663,7 @@ describe('Wo', () => {
 
     it('errors on invalid cookie header', (done) => {
 
-        const server = provisionServer({ routes: { state: { failAction: 'ignore' } } });
+        const server = provisionServer('s-eich', { routes: { state: { failAction: 'ignore' } } });
         server.state('a', { passThrough: true });
 
         server.route({
@@ -1763,36 +1759,48 @@ describe('Wo', () => {
         });
     });
 
-    it('uses reply decorator', (done) => {
 
-        const upstream = new Hapi.Server();
-        upstream.connection();
-        upstream.route({
-            method: 'GET',
-            path: '/',
-            handler: function (request, reply) {
+    it('remove-upstream', { parallel: false }, (done) => {
 
-                return reply('ok');
-            }
-        });
-        upstream.start(() => {
+        const upstream = provisionUpstream(
+            'u-ru',
+            {},
+            {
+                path: '/ru',
+                method: 'get',
+                handler: (req, reply) => {
 
-            const server = provisionServer();
-            server.route({
-                method: 'GET',
-                path: '/',
-                handler: function (request, reply) {
-
-                    return reply.proxy({ host: 'localhost', port: upstream.info.port, xforward: true, passThrough: true });
+                    reply('ru');
                 }
             });
 
-            server.inject('/', (res) => {
+        upstream.start(() => {
 
-                expect(res.statusCode).to.equal(200);
-                expect(res.payload).to.equal('ok');
-                done();
+            const server = provisionServer('s-ru');
+
+            server.route({
+                method: 'get',
+                path: '/ru',
+                handler: { wo: { ttl: 'upstream' } }
+            });
+
+            server.start( () => {
+
+                setTimeout( () => {
+
+                    upstream.sneeze.leave();
+
+                    setTimeout( () => {
+
+                        server.inject('/ru', (res) => {
+
+                            expect(res.statusCode).to.equal(502);
+                            done();
+                        });
+                    }, 1400 );
+                }, 333 );
             });
         });
     });
+
 });

@@ -1,25 +1,26 @@
+'use strict';
 
-var hapi = require('hapi')
+const Hapi = require('hapi');
 
-var server = new hapi.Server()
+const server = new Hapi.Server();
 
-server.connection({ 
-  port: 8002 
-})
+server.connection();
 
 server.register({
-  register:require('..'),
-  options:{
-    route: { path: '/api/ping' },
-  }
-},console.log)
-  
-server.route({ 
-  method: 'GET', path: '/api/ping', 
-  handler: function( req, reply ){
-    reply({b:2})
-  }})
+    register: require('..'),
+    options: {
+        route: { path: '/api/ping' },
+        sneeze: { silent: false }
+    }
+}, console.log);
 
-server.start(console.log)
+server.route({
+    method: 'GET', path: '/api/ping',
+    handler: function ( req, reply ) {
+
+        reply({ b: 2 });
+    } });
+
+server.start(console.log);
 
 

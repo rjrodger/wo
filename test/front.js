@@ -4,22 +4,19 @@ const Hapi = require('hapi');
 
 const server = new Hapi.Server();
 
-server.connection();
+server.connection({
+    port: 8000
+});
 
 server.register({
     register: require('..'),
-    options: {
-        route: { path: '/api/ping' },
-        sneeze: { silent: false }
-    }
+    options: { sneeze: { silent: false } }
 }, console.log);
 
 server.route({
     method: 'GET', path: '/api/ping',
-    handler: function ( req, reply ) {
-
-        reply({ a: 1 });
-    } });
+    handler: { wo: {} }
+});
 
 server.start(console.log);
 

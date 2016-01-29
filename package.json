@@ -18,7 +18,7 @@
     "boom": "2.X.X",
     "hoek": "2.X.X",
     "joi": "6.X.X",
-    "sneeze": "0.2.0",
+    "sneeze": "^0.3.2",
     "wreck": "6.X.X"
   },
   "devDependencies": {
@@ -28,8 +28,8 @@
     "lab": "7.X.X"
   },
   "scripts": {
-    "test": "lab -a code -t 100 -L",
-    "test-cov-html": "lab -a code -r html -o coverage.html"
+    "test": "lab -a code -P index -t 90 -L",
+    "test-cov-html": "lab -a code -P index -r html -o coverage.html"
   },
   "license": "BSD-3-Clause",
   "files": [
