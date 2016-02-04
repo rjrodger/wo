@@ -18,6 +18,11 @@ server.route({
     handler: { wo: {} }
 });
 
+server.route({
+    method: 'GET', path: '/api/foo',
+    handler: { wo: {} }
+});
+
 server.start(console.log);
 
 

@@ -27,7 +27,8 @@ const expect = Code.expect;
 
 lab.before((done) => {
 
-    Wo.start({ isbase: true, silent: true, ready: done });
+    Wo.start({ port: 39998 });
+    Wo.start({ isbase: true, ready: done });
 });
 
 describe('Wo', () => {
@@ -710,7 +711,7 @@ describe('Wo', () => {
         upstream.route({ method: 'GET', path: '/', handler: handler });
         upstream.start(() => {
 
-            const mapUri = function (request, callback) {
+            const mapUri = function (context, request, callback) {
 
                 return callback(null, 'http://127.0.0.1:' + upstream.info.port + '/');
             };
@@ -754,7 +755,7 @@ describe('Wo', () => {
         upstream.route({ method: 'GET', path: '/', handler: handler });
         upstream.start(() => {
 
-            const mapUri = function (request, callback) {
+            const mapUri = function (context, request, callback) {
 
                 const headers = {
                     'x-forwarded-for': 'testhost',
@@ -804,7 +805,7 @@ describe('Wo', () => {
         upstream.route({ method: 'GET', path: '/', handler: handler });
         upstream.start(() => {
 
-            const mapUri = function (request, callback) {
+            const mapUri = function (context, request, callback) {
 
                 const headers = {
                     'x-forwarded-for': 'testhost',
@@ -842,7 +843,7 @@ describe('Wo', () => {
         upstream.route({ method: 'POST', path: '/echo', handler: echoPostBody });
         upstream.start(() => {
 
-            const mapUri = function (request, callback) {
+            const mapUri = function (context, request, callback) {
 
                 return callback(null, 'http://127.0.0.1:' + upstream.info.port + request.path + (request.url.search || ''), { 'x-super-special': '@' });
             };
@@ -861,7 +862,7 @@ describe('Wo', () => {
 
     it('replies with an error when it occurs in mapUri', (done) => {
 
-        const mapUriWithError = function (request, callback) {
+        const mapUriWithError = function (context, request, callback) {
 
             return callback(new Error('myerror'));
         };
@@ -1125,7 +1126,7 @@ describe('Wo', () => {
 
         upstream.start(() => {
 
-            const mapSslUri = function (request, callback) {
+            const mapSslUri = function (context, request, callback) {
 
                 return callback(null, 'https://127.0.0.1:' + upstream.info.port);
             };
@@ -1161,7 +1162,7 @@ describe('Wo', () => {
 
         upstream.start(() => {
 
-            const mapSslUri = function (request, callback) {
+            const mapSslUri = function (context, request, callback) {
 
                 return callback(null, 'https://127.0.0.1:' + upstream.info.port);
             };
@@ -1196,7 +1197,7 @@ describe('Wo', () => {
 
         upstream.start(() => {
 
-            const mapSslUri = function (request, callback) {
+            const mapSslUri = function (context, request, callback) {
 
                 return callback(null, 'https://127.0.0.1:' + upstream.info.port);
             };
@@ -1803,4 +1804,125 @@ describe('Wo', () => {
         });
     });
 
+
+    it('multiple-routes', { parallel: false }, (done) => {
+
+        const upstream = provisionUpstream(
+            'u-ru',
+            {},
+            [
+                {
+                    path: '/ra',
+                    method: 'get',
+                    handler: (req, reply) => {
+
+                        reply('ra');
+                    }
+                },
+                {
+                    path: '/rb',
+                    method: 'get',
+                    handler: (req, reply) => {
+
+                        reply('rb');
+                    }
+                }
+            ]);
+
+        upstream.start(() => {
+
+            const server = provisionServer('s-rx');
+
+            server.route({
+                method: 'get',
+                path: '/ra',
+                handler: { wo: { ttl: 'upstream' } }
+            });
+
+            server.route({
+                method: 'get',
+                path: '/rb',
+                handler: { wo: { ttl: 'upstream' } }
+            });
+
+            server.start( () => {
+
+                setTimeout( () => {
+
+                    server.inject('/ra', (res0) => {
+
+                        expect(res0.result).to.equal('ra');
+
+                        server.inject('/rb', (res1) => {
+
+                            expect(res1.result).to.equal('rb');
+                            done();
+                        });
+                    });
+
+                }, 333 );
+            });
+        });
+    });
+
+
+    it('inverted-start', { parallel: false }, (done) => {
+
+        const upstream = new Hapi.Server();
+        upstream.connection();
+
+        upstream.register({
+            register: Wo,
+            options: {
+                route: {
+                    path: '/a',
+                    method: 'get'
+                },
+                sneeze: {
+                    bases: ['127.0.0.1:39998']
+                }
+            }
+        }, Hoek.ignore);
+
+        upstream.route({
+            path: '/a',
+            method: 'get',
+            handler: (req, reply) => {
+
+                reply('a');
+            }
+        });
+
+        const server = provisionServer('s-a');
+        server.route({
+            method: 'get',
+            path: '/a',
+            handler: {
+                wo: {
+                    ttl: 'upstream',
+                    bases: ['127.0.0.1:39998']
+                }
+            }
+        });
+
+
+        server.start(() => {
+
+            setTimeout(() => {
+
+                upstream.start(() => {
+
+                    setTimeout(() => {
+
+                        server.inject('/a', (res0) => {
+
+                            expect(res0.result).to.equal('a');
+                            done();
+                        });
+
+                    }, 333 );
+                });
+            }, 333 );
+        });
+    });
 });
