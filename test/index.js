@@ -1876,7 +1876,7 @@ describe('Wo', () => {
             options: {
                 route: {
                     path: '/a',
-                    method: 'get'
+                    method: ['GET','POST']
                 },
                 sneeze: {
                     bases: ['127.0.0.1:39998']
