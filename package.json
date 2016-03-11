@@ -1,7 +1,7 @@
 {
   "name": "wo",
   "description": "wo",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "repository": "git://github.com/rjrodger/wo",
   "main": "lib/index.js",
   "keywords": [
