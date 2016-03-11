@@ -18,7 +18,7 @@
     "boom": "2.X.X",
     "hoek": "2.X.X",
     "joi": "6.X.X",
-    "sneeze": "^0.3.2",
+    "sneeze": "0.5.X",
     "wreck": "6.X.X"
   },
   "devDependencies": {
