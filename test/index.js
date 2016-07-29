@@ -27,8 +27,8 @@ const expect = Code.expect;
 
 lab.before((done) => {
 
-    Wo.start({ port: 39998 });
-    Wo.start({ isbase: true, ready: setTimeout.bind(null,done,111) });
+    Wo.start({ port: 39998, silent: true });
+    Wo.start({ isbase: true, silent: true, ready: setTimeout.bind(null,done,111) });
 });
 
 describe('Wo', () => {
@@ -40,13 +40,15 @@ describe('Wo', () => {
         server.connection(options);
         server.register({
             register: Wo,
-            options: { sneeze: {
-                silent: true,
-                identifier: mark,
-                swim: {
-                    interval: 50
+            options: {
+                sneeze: {
+                    silent: true,
+                    identifier: mark,
+                    swim: {
+                        interval: 50
+                    }
                 }
-            } }
+            }
         }, Hoek.ignore);
         return server;
     };
@@ -57,7 +59,13 @@ describe('Wo', () => {
         server.connection(options);
         server.register({
             register: Wo,
-            options: { route: route, sneeze: { silent: true, identifier: mark } }
+            options: {
+                route: route,
+                sneeze: {
+                    silent: true,
+                    identifier: mark
+                }
+            }
         }, Hoek.ignore);
         server.route(route);
         return server;
@@ -254,6 +262,10 @@ describe('Wo', () => {
 
         const onResponse = function (err, res, request, reply, settings, ttl) {
 
+            if (err) {
+                return done(err);
+            }
+
             reply(res).vary('Something');
         };
 
@@ -324,6 +336,10 @@ describe('Wo', () => {
                 expect(res.statusCode).to.equal(200);
 
                 Fs.readFile(__dirname + '/../package.json', { encoding: 'utf8' }, (err, file) => {
+
+                    if (err) {
+                        return done(err);
+                    }
 
                     Zlib.unzip(res.rawPayload, (err, unzipped) => {
 
@@ -473,6 +489,10 @@ describe('Wo', () => {
 
             const onResponseWithError = function (err, res, request, reply, settings, ttl) {
 
+                if (err) {
+                    return done(err);
+                }
+
                 reply(Boom.forbidden('Forbidden'));
             };
 
@@ -494,6 +514,10 @@ describe('Wo', () => {
         upstream.start(() => {
 
             const on = function (err, res, request, reply, settings, ttl) {
+
+                if (err) {
+                    return done(err);
+                }
 
                 reply(res).state('a', 'b');
             };
@@ -517,6 +541,10 @@ describe('Wo', () => {
         upstream.start(() => {
 
             const onResponseWithError = function (err, res, request, reply, settings, ttl) {
+
+                if (err) {
+                    return done(err);
+                }
 
                 reply(this.c);
             };
@@ -549,6 +577,10 @@ describe('Wo', () => {
             const plugin = function (server, options, next) {
 
                 const onResponseWithError = function (err, res, request, reply, settings, ttl) {
+
+                    if (err) {
+                        return done(err);
+                    }
 
                     reply(this.c);
                 };
@@ -594,6 +626,10 @@ describe('Wo', () => {
 
                 const onResponseWithError = function (err, res, request, reply, settings, ttl) {
 
+                    if (err) {
+                        return done(err);
+                    }
+
                     reply(this.c);
                 };
 
@@ -638,6 +674,10 @@ describe('Wo', () => {
             const plugin = function (server, options, next) {
 
                 const onResponseWithError = function (err, res, request, reply, settings, ttl) {
+
+                    if (err) {
+                        return done(err);
+                    }
 
                     reply(this.c);
                 };
@@ -723,6 +763,10 @@ describe('Wo', () => {
 
                 Wreck.get('http://127.0.0.1:' + server.info.port + '/', (err, res, body) => {
 
+                    if (err) {
+                        return done(err);
+                    }
+
                     expect(res.statusCode).to.equal(200);
                     const result = JSON.parse(body);
 
@@ -769,6 +813,10 @@ describe('Wo', () => {
             server.start(() => {
 
                 Wreck.get('http://127.0.0.1:' + server.info.port + '/', (err, res, body) => {
+
+                    if (err) {
+                        return done(err);
+                    }
 
                     expect(res.statusCode).to.equal(200);
                     const result = JSON.parse(body);
@@ -1326,86 +1374,6 @@ describe('Wo', () => {
         });
     });
 
-/*AAA
-    it('ignores when no upstream caching headers to pass', { parallel: false, timeout: 5555 }, (done) => {
-
-        const upstream = provisionUpstream(
-            'u0-nuch',
-            {},
-            {
-                path: '/nuchp',
-                method: 'get',
-                handler: (req, reply) => {
-
-                    reply('foo');
-                }
-            });
-
-
-        upstream.start(() => {
-
-            const server = provisionServer('s0-nuch');
-
-            server.route({
-                method: 'get',
-                path: '/nuchp',
-                handler: { wo: { ttl: 'upstream' } }
-            });
-
-
-
-            server.start( () => {
-
-                setTimeout( () => {
-
-                    server.inject('/nuchp', (res) => {
-
-                        expect(res.statusCode).to.equal(200);
-                        expect(res.headers['cache-control']).to.equal('no-cache');
-
-                        server.stop(upstream.stop.bind(upstream,done));
-                    });
-                }, 777 );
-            });
-        });
-    });
-
-
-    it('ignores when upstream caching header is invalid', { parallel: false, timeout: 5555 }, (done) => {
-
-        const upstream = provisionUpstream(
-            'u-iuchi',
-            {},
-            {
-                path:'/iuchi', method:'get', handler: (req, reply) => {
-
-                    reply('not much')
-                    .header( 'cache-control', 'some crap that does not work');
-                }
-            });
-
-        upstream.start(() => {
-
-            const server = provisionServer();
-            server.route({ method: 'GET', path: '/iuchi', handler: { wo: { ttl: 'upstream' } } });
-
-            server.start(() => {
-
-                setTimeout(() => {
-
-                    server.inject('/iuchi', (res) => {
-
-                        expect(res.statusCode).to.equal(200);
-                        expect(res.headers['cache-control']).to.equal('no-cache');
-                        done();
-                    });
-                },333);
-            });
-        });
-    });
-*/
-
-
     it('overrides response code with 304', (done) => {
 
         const upstream = new Hapi.Server();
@@ -1422,6 +1390,10 @@ describe('Wo', () => {
         upstream.start(() => {
 
             const onResponse304 = function (err, res, request, reply, settings, ttl) {
+
+                if (err) {
+                    return done(err);
+                }
 
                 return reply(res).code(304);
             };
@@ -1807,7 +1779,7 @@ describe('Wo', () => {
         });
     });
 
-    it('multiple-routes', { parallel: false }, (done) => {
+    it('multiple-routes', { parallel: false, timeout: 5555 }, (done) => {
 
         const upstream = provisionUpstream(
             'u-ru',
@@ -1862,7 +1834,7 @@ describe('Wo', () => {
                         });
                     });
 
-                }, 333 );
+                }, 999 );
             });
         });
     });

@@ -16,16 +16,16 @@
   },
   "dependencies": {
     "boom": "2.X.X",
-    "hoek": "2.X.X",
-    "joi": "6.X.X",
-    "sneeze": "0.5.X",
+    "hoek": "4.0.1",
+    "joi": "9.0.1",
+    "sneeze": "0.7.1",
     "wreck": "6.X.X"
   },
   "devDependencies": {
-    "code": "2.X.X",
+    "code": "2.3.0",
     "hapi": "11.X.X",
     "inert": "3.X.X",
-    "lab": "7.X.X"
+    "lab": "10.9.0"
   },
   "scripts": {
     "test": "lab -a code -P index -t 90 -L",
