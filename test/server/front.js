@@ -1,6 +1,7 @@
 'use strict';
 
 const Hapi = require('hapi');
+const Wo = require('../..');
 
 const server = new Hapi.Server();
 
@@ -9,7 +10,7 @@ server.connection({
 });
 
 server.register({
-    register: require('..'),
+    register: Wo,
     options: { sneeze: { silent: false } }
 }, console.log);
 
@@ -24,5 +25,3 @@ server.route({
 });
 
 server.start(console.log);
-
-

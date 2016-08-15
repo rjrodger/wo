@@ -1,4 +1,5 @@
 'use strict';
+
 // Load modules
 
 const Fs = require('fs');
@@ -6,11 +7,11 @@ const Net = require('net');
 const Zlib = require('zlib');
 const Boom = require('boom');
 const Code = require('code');
-const Wo = require('..');
 const Hapi = require('hapi');
 const Hoek = require('hoek');
 const Lab = require('lab');
 const Wreck = require('wreck');
+const Wo = require('..');
 
 
 // Declare internals
@@ -35,7 +36,6 @@ describe('Wo', () => {
 
     const provisionServer = function (mark, options) {
 
-        mark = mark || 's0';
         const server = new Hapi.Server();
         server.connection(options);
         server.register({
@@ -43,7 +43,7 @@ describe('Wo', () => {
             options: {
                 sneeze: {
                     silent: true,
-                    identifier: mark,
+                    identifier: mark || 's0',
                     swim: {
                         interval: 50
                     }
@@ -60,7 +60,7 @@ describe('Wo', () => {
         server.register({
             register: Wo,
             options: {
-                route: route,
+                route,
                 sneeze: {
                     silent: true,
                     identifier: mark
@@ -275,7 +275,7 @@ describe('Wo', () => {
         upstream.start(() => {
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/headers', handler: { wo: { host: 'localhost', port: upstream.info.port, passThrough: true, onResponse: onResponse } } });
+            server.route({ method: 'GET', path: '/headers', handler: { wo: { host: 'localhost', port: upstream.info.port, passThrough: true, onResponse } } });
 
             server.inject({ url: '/headers', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
@@ -558,7 +558,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/onResponseError', config: { handler: handler, bind: { c: 6 } } });
+            server.route({ method: 'GET', path: '/onResponseError', config: { handler, bind: { c: 6 } } });
 
             server.inject('/onResponseError', (res) => {
 
@@ -593,7 +593,7 @@ describe('Wo', () => {
                     }
                 };
 
-                server.route({ method: 'GET', path: '/', config: { handler: handler, bind: { c: 6 } } });
+                server.route({ method: 'GET', path: '/', config: { handler, bind: { c: 6 } } });
                 return next();
             };
 
@@ -642,7 +642,7 @@ describe('Wo', () => {
                 };
 
                 server.bind({ c: 7 });
-                server.route({ method: 'GET', path: '/', config: { handler: handler } });
+                server.route({ method: 'GET', path: '/', config: { handler } });
                 return next();
             };
 
@@ -691,7 +691,7 @@ describe('Wo', () => {
                 };
 
                 server.bind({ c: 7 });
-                server.route({ method: 'GET', path: '/', config: { handler: handler, bind: { c: 4 } } });
+                server.route({ method: 'GET', path: '/', config: { handler, bind: { c: 4 } } });
                 return next();
             };
 
@@ -748,7 +748,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const mapUri = function (context, request, callback) {
@@ -757,7 +757,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer({ host: '127.0.0.1' });
-            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri: mapUri, xforward: true } } });
+            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri, xforward: true } } });
 
             server.start(() => {
 
@@ -793,7 +793,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const mapUri = function (context, request, callback) {
@@ -808,7 +808,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer('s-axfh', { host: '127.0.0.1' });
-            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri: mapUri, xforward: true } } });
+            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri, xforward: true } } });
 
             server.start(() => {
 
@@ -847,7 +847,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const mapUri = function (context, request, callback) {
@@ -862,7 +862,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri: mapUri, xforward: true } } });
+            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri, xforward: true } } });
 
             server.inject('/', (res) => {
 
@@ -894,7 +894,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'POST', path: '/echo', handler: { wo: { mapUri: mapUri } } });
+            server.route({ method: 'POST', path: '/echo', handler: { wo: { mapUri } } });
 
             server.inject({ url: '/echo', method: 'POST', payload: '{"echo":true}' }, (res) => {
 
@@ -1522,7 +1522,7 @@ describe('Wo', () => {
             done();
 
         };
-        server.route({ method: 'GET', path: '/agenttest', handler: { wo: { uri: 'http://localhost', agent: agent } } });
+        server.route({ method: 'GET', path: '/agenttest', handler: { wo: { uri: 'http://localhost', agent } } });
         server.inject({ method: 'GET', url: '/agenttest', headers: {} }, (res) => { });
     });
 
@@ -1535,7 +1535,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1572,7 +1572,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1610,7 +1610,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1671,7 +1671,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1708,7 +1708,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
