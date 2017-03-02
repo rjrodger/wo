@@ -1,4 +1,5 @@
 'use strict';
+
 // Load modules
 
 const Fs = require('fs');
@@ -6,11 +7,11 @@ const Net = require('net');
 const Zlib = require('zlib');
 const Boom = require('boom');
 const Code = require('code');
-const Wo = require('..');
 const Hapi = require('hapi');
 const Hoek = require('hoek');
 const Lab = require('lab');
 const Wreck = require('wreck');
+const Wo = require('..');
 
 
 // Declare internals
@@ -25,25 +26,20 @@ const describe = lab.describe;
 const it = lab.it;
 const expect = Code.expect;
 
-lab.before((done) => {
-
-    Wo.start({ port: 39998, silent: true });
-    Wo.start({ isbase: true, silent: true, ready: setTimeout.bind(null,done,111) });
-});
 
 describe('Wo', () => {
 
     const provisionServer = function (mark, options) {
 
-        mark = mark || 's0';
         const server = new Hapi.Server();
-        server.connection(options);
+        server.connection(options || { port: 0 });
         server.register({
             register: Wo,
             options: {
                 sneeze: {
+                    port: 0,
                     silent: true,
-                    identifier: mark,
+                    identifier: mark || 's0',
                     swim: {
                         interval: 50
                     }
@@ -56,12 +52,13 @@ describe('Wo', () => {
     const provisionUpstream = function (mark, options, route) {
 
         const server = new Hapi.Server();
-        server.connection(options);
+        server.connection(options || { port: 0 });
         server.register({
             register: Wo,
             options: {
-                route: route,
+                route,
                 sneeze: {
+                    port: 0,
                     silent: true,
                     identifier: mark
                 }
@@ -121,7 +118,7 @@ describe('Wo', () => {
 
                 expect(response.statusCode).to.equal(200);
                 expect(response.payload).to.contain('John Doe');
-                expect(response.headers['set-cookie']).to.deep.equal(['test=123', 'auto=xyz']);
+                expect(response.headers['set-cookie']).to.equal(['test=123', 'auto=xyz']);
                 expect(response.headers['cache-control']).to.equal('max-age=2, must-revalidate, private');
 
                 server.inject('/profile', (res) => {
@@ -275,7 +272,7 @@ describe('Wo', () => {
         upstream.start(() => {
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/headers', handler: { wo: { host: 'localhost', port: upstream.info.port, passThrough: true, onResponse: onResponse } } });
+            server.route({ method: 'GET', path: '/headers', handler: { wo: { host: 'localhost', port: upstream.info.port, passThrough: true, onResponse } } });
 
             server.inject({ url: '/headers', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
@@ -308,7 +305,7 @@ describe('Wo', () => {
                 server.inject({ url: '/gzip', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
                     expect(res.statusCode).to.equal(200);
-                    expect(res.rawPayload).to.deep.equal(zipped);
+                    expect(res.rawPayload).to.equal(zipped);
                     done();
                 });
             });
@@ -344,7 +341,7 @@ describe('Wo', () => {
                     Zlib.unzip(res.rawPayload, (err, unzipped) => {
 
                         expect(err).to.not.exist();
-                        expect(unzipped.toString('utf8')).to.deep.equal(file);
+                        expect(unzipped.toString('utf8')).to.equal(file);
                         done();
                     });
                 });
@@ -558,7 +555,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/onResponseError', config: { handler: handler, bind: { c: 6 } } });
+            server.route({ method: 'GET', path: '/onResponseError', config: { handler, bind: { c: 6 } } });
 
             server.inject('/onResponseError', (res) => {
 
@@ -593,7 +590,7 @@ describe('Wo', () => {
                     }
                 };
 
-                server.route({ method: 'GET', path: '/', config: { handler: handler, bind: { c: 6 } } });
+                server.route({ method: 'GET', path: '/', config: { handler, bind: { c: 6 } } });
                 return next();
             };
 
@@ -642,7 +639,7 @@ describe('Wo', () => {
                 };
 
                 server.bind({ c: 7 });
-                server.route({ method: 'GET', path: '/', config: { handler: handler } });
+                server.route({ method: 'GET', path: '/', config: { handler } });
                 return next();
             };
 
@@ -691,7 +688,7 @@ describe('Wo', () => {
                 };
 
                 server.bind({ c: 7 });
-                server.route({ method: 'GET', path: '/', config: { handler: handler, bind: { c: 4 } } });
+                server.route({ method: 'GET', path: '/', config: { handler, bind: { c: 4 } } });
                 return next();
             };
 
@@ -748,7 +745,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const mapUri = function (context, request, callback) {
@@ -757,7 +754,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer({ host: '127.0.0.1' });
-            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri: mapUri, xforward: true } } });
+            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri, xforward: true } } });
 
             server.start(() => {
 
@@ -793,7 +790,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const mapUri = function (context, request, callback) {
@@ -808,7 +805,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer('s-axfh', { host: '127.0.0.1' });
-            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri: mapUri, xforward: true } } });
+            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri, xforward: true } } });
 
             server.start(() => {
 
@@ -847,7 +844,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const mapUri = function (context, request, callback) {
@@ -862,7 +859,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri: mapUri, xforward: true } } });
+            server.route({ method: 'GET', path: '/', handler: { wo: { mapUri, xforward: true } } });
 
             server.inject('/', (res) => {
 
@@ -894,7 +891,7 @@ describe('Wo', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'POST', path: '/echo', handler: { wo: { mapUri: mapUri } } });
+            server.route({ method: 'POST', path: '/echo', handler: { wo: { mapUri } } });
 
             server.inject({ url: '/echo', method: 'POST', payload: '{"echo":true}' }, (res) => {
 
@@ -1018,7 +1015,7 @@ describe('Wo', () => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('John Doe');
-                expect(res.headers['set-cookie']).to.deep.equal(['test=123', 'auto=xyz']);
+                expect(res.headers['set-cookie']).to.equal(['test=123', 'auto=xyz']);
                 done();
             });
         });
@@ -1050,7 +1047,7 @@ describe('Wo', () => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('John Doe');
-                expect(res.headers['set-cookie']).to.deep.equal(['test=123', 'auto=xyz']);
+                expect(res.headers['set-cookie']).to.equal(['test=123', 'auto=xyz']);
                 done();
             });
         });
@@ -1522,7 +1519,7 @@ describe('Wo', () => {
             done();
 
         };
-        server.route({ method: 'GET', path: '/agenttest', handler: { wo: { uri: 'http://localhost', agent: agent } } });
+        server.route({ method: 'GET', path: '/agenttest', handler: { wo: { uri: 'http://localhost', agent } } });
         server.inject({ method: 'GET', url: '/agenttest', headers: {} }, (res) => { });
     });
 
@@ -1535,7 +1532,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1557,7 +1554,7 @@ describe('Wo', () => {
 
                 expect(res.statusCode).to.equal(200);
                 const cookies = JSON.parse(res.payload);
-                expect(cookies).to.deep.equal({ b: '2' });
+                expect(cookies).to.equal({ b: '2' });
                 done();
             });
         });
@@ -1572,7 +1569,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1595,7 +1592,7 @@ describe('Wo', () => {
 
                 expect(res.statusCode).to.equal(200);
                 const cookies = JSON.parse(res.payload);
-                expect(cookies).to.deep.equal({ a: '1', b: '2' });
+                expect(cookies).to.equal({ a: '1', b: '2' });
                 done();
             });
         });
@@ -1610,7 +1607,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1632,7 +1629,7 @@ describe('Wo', () => {
 
                 expect(res.statusCode).to.equal(200);
                 const cookies = JSON.parse(res.payload);
-                expect(cookies).to.deep.equal({ a: '1', b: '2' });
+                expect(cookies).to.equal({ a: '1', b: '2' });
                 done();
             });
         });
@@ -1671,7 +1668,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1693,7 +1690,7 @@ describe('Wo', () => {
 
                 expect(res.statusCode).to.equal(200);
                 const cookies = JSON.parse(res.payload);
-                expect(cookies).to.deep.equal({});
+                expect(cookies).to.equal({});
                 done();
             });
         });
@@ -1708,7 +1705,7 @@ describe('Wo', () => {
 
         const upstream = new Hapi.Server();
         upstream.connection();
-        upstream.route({ method: 'GET', path: '/', handler: handler });
+        upstream.route({ method: 'GET', path: '/', handler });
         upstream.start(() => {
 
             const server = provisionServer();
@@ -1730,7 +1727,7 @@ describe('Wo', () => {
 
                 expect(res.statusCode).to.equal(200);
                 const cookies = JSON.parse(res.payload);
-                expect(cookies).to.deep.equal({ b: '2' });
+                expect(cookies).to.equal({ b: '2' });
                 done();
             });
         });
@@ -1783,7 +1780,7 @@ describe('Wo', () => {
 
         const upstream = provisionUpstream(
             'u-ru',
-            {},
+            { port: 0 },
             [
                 {
                     path: '/ra',
@@ -1819,9 +1816,9 @@ describe('Wo', () => {
                 handler: { wo: { ttl: 'upstream' } }
             });
 
-            server.start( () => {
+            server.start(() => {
 
-                setTimeout( () => {
+                setTimeout(() => {
 
                     server.inject('/ra', (res0) => {
 
