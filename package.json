@@ -3,7 +3,7 @@
   "description": "wo",
   "version": "0.8.0",
   "repository": "git://github.com/rjrodger/wo",
-  "main": "lib/index.js",
+  "main": "lib/wo.js",
   "keywords": [
     "HTTP",
     "proxy",
@@ -19,17 +19,22 @@
     "hoek": "4.x.x",
     "joi": "9.x.x",
     "sneeze": "0.7.x",
-    "wreck": "6.x.x"
+    "wreck": "9.x.x"
   },
   "devDependencies": {
     "code": "3.x.x",
+    "eslint-plugin-hapi": "4.x.x",
+    "eslint-plugin-standard": "2.x.x",
     "hapi": "14.x.x",
     "inert": "4.x.x",
-    "lab": "11.x.x"
+    "lab": "11.x.x",
+    "seneca": "^3.3.0",
+    "seneca-balance-client": "^0.6.0",
+    "seneca-mesh": "^0.9.0"
   },
   "scripts": {
-    "test": "lab -a code -P index -t 90 -L",
-    "test-cov-html": "lab -a code -P index -r html -o coverage.html"
+    "test": "lab -a code -t 90 -L",
+    "test-cov-html": "lab -a code -r html -o coverage.html"
   },
   "license": "BSD-3-Clause",
   "files": [

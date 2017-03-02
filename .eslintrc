@@ -1,0 +1,7 @@
+{
+  "extends": "hapi",
+  "rules": {
+     "padded-blocks": 0,
+     "object-shorthand": 0
+  }
+}
