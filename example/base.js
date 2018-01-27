@@ -1,1 +1,1 @@
-require('..').start({ silent: false });
+require('..').start({ silent: false, xhost: '@lo0/4' });
