@@ -34,7 +34,7 @@ server.route({
   path: '/api/b',		
   handler: function ( req, reply ) {		
     seneca.act('b:1', {c:req.query.c}, function (err, out) {
-      reply({ b: err || out.b, c: out.c, when: Date.now() });		
+      reply({ b: err || out.b, c: err || out.c, when: Date.now() });		
     })
   }
 });		

@@ -1,0 +1,160 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: web
+spec:
+  ports:
+    - name: web
+      port: 8000
+      targetPort: 8000
+  selector:
+    srv: front
+  type: NodePort
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: repl
+spec:
+  ports:
+    - name: repl
+      port: 10000
+      targetPort: 10000
+  selector:
+    srv: base
+  type: NodePort
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: consul
+spec:
+  ports:
+    - name: consul
+      port: 8500
+      targetPort: 8500
+  selector:
+    srv: consul
+  type: NodePort
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: base
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: base
+    spec:
+      containers:
+      - name: base
+        image: wo-base:1
+
+---
+
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: front
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: front
+    spec:
+      containers:
+      - name: front
+        image: wo-front:1
+---
+
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: upstream-a
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: upstream-a
+    spec:
+      containers:
+      - name: upstream-a
+        image: wo-upstream-a:1
+---
+
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: upstream-b
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: upstream-b
+    spec:
+      containers:
+      - name: upstream-b
+        image: wo-upstream-b:1
+---
+
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: seneca-b
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: seneca-b
+    spec:
+      containers:
+      - name: seneca-b
+        image: wo-seneca-b:1
+---
+
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: seneca-c
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: seneca-c
+    spec:
+      containers:
+      - name: seneca-c
+        image: wo-seneca-c:1
+---
+
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: consul
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: consul
+    spec:
+      containers:
+      - name: consul
+        image: consul
+

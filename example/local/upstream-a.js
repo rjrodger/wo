@@ -1,5 +1,4 @@
 const Hapi = require('hapi');		
-const Seneca = require('seneca');
 
 const server = new Hapi.Server();		
 		
