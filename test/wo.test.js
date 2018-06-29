@@ -1,5 +1,8 @@
 'use strict'
 
+var tmx = parseInt(process.env.TIMEOUT_MULTIPLIER || 1, 10)
+
+
 // Load modules
 
 const Fs = require('fs')
@@ -37,16 +40,6 @@ describe('Wo', () => {
   const provisionServer = function(mark, options) {
     const server = new Hapi.Server()
     server.connection(options || { port: 0 })
-
-    /*
-    server.register({
-      register: Good,
-      options: {
-        ops: false,
-        reporters: { console: [{ module: 'good-console' }, 'stdout'] }
-      }
-    })
-    */
     
     server.register(
       {
@@ -1993,7 +1986,7 @@ describe('Wo', () => {
     })
   })
 
-  it('remove-upstream', { parallel: false, timeout: 5555 }, done => {
+  it('remove-upstream', { parallel: false, timeout: tmx*9999 }, done => {
     const upstream = provisionUpstream(
       'u-ru',
       {},
@@ -2021,11 +2014,12 @@ describe('Wo', () => {
 
           setTimeout(() => {
             server.inject('/ru', res => {
+              //console.log('RU', res.statusCode)
               expect(res.statusCode).to.equal(502)
               done()
             })
-          }, 2222)
-        }, 333)
+          }, 2222*tmx)
+        }, 1111*tmx)
       })
     })
   })

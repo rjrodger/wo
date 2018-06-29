@@ -87,7 +87,7 @@ Wo.register = function(server, pluginOptions, next) {
 
   // sneeze network tag, not instance tag
   sneeze_opts.tag = sneeze_opts.tag || 'wo'
-
+  
   //console.log(sneeze_opts)
   const sneeze = Sneeze(sneeze_opts)
   server.decorate('server', 'sneeze', sneeze)
