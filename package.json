@@ -23,6 +23,7 @@
     "wreck": "12.5"
   },
   "devDependencies": {
+    "coveralls": "3",
     "code": "4",
     "good": "8",
     "good-console": "7",
