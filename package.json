@@ -1,7 +1,7 @@
 {
   "name": "wo",
   "description": "wo",
-  "version": "0.10.0",
+  "version": "1.0.0",
   "repository": "git://github.com/rjrodger/wo",
   "main": "wo.js",
   "keywords": [
@@ -17,36 +17,36 @@
   "dependencies": {
     "boom": "7.2",
     "hoek": "5.0",
-    "joi": "13.4",
+    "joi": "14.0",
     "rif": "0.3",
     "sneeze": "0.10",
-    "wreck": "12.5"
+    "wreck": "14.1"
   },
   "devDependencies": {
+    "hapi": "17.6",
     "coveralls": "3",
-    "code": "4",
-    "good": "8",
-    "good-console": "7",
-    "hapi": "16",
-    "inert": "4",
-    "lab": "14",
-    "prettier": "1",
-    "seneca": "3",
-    "seneca-balance-client": "0",
-    "seneca-consul-registry": "0",
-    "seneca-mesh": "0",
-    "seneca-registry": "0",
-    "seneca-repl": "1"
+    "code": "5.2",
+    "good": "8.1",
+    "good-console": "7.1",
+    "inert": "5.1",
+    "lab": "17.0",
+    "prettier": "1.14",
+    "seneca": "github:senecajs/seneca#3.8rc1",
+    "seneca-balance-client": "0.7",
+    "seneca-consul-registry": "0.2",
+    "seneca-mesh": "0.12",
+    "seneca-registry": "0.3",
+    "seneca-repl": "1.2"
   },
   "scripts": {
-    "test": "lab -v -P test -L -t 90 -I URL,URLSearchParams,BigUint64Array,BigInt64Array,BigInt",
-    "coveralls": "lab -s -P test -r lcov -I URL,URLSearchParams,BigUint64Array,BigInt64Array,BigInt | coveralls",
+    "test": "lab -v -P test -L -t 90",
+    "coveralls": "lab -s -P test -r lcov | coveralls",
     "coverage": "lab -v -P test -L -t 90 -r html > docs/coverage.html",
     "prettier": "prettier --write --no-semi --single-quote *.js lib/*.js test/*.js"
   },
   "license": "BSD-3-Clause",
   "files": [
-    "lib/wo.js",
+    "wo.js",
     "LICENSE",
     "README.md"
   ]

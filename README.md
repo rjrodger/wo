@@ -2,6 +2,8 @@
 
 Dynamic balancing proxy handler plugin for hapi.js, based on h2o2. Uses the SWIM algorithm, see [rjrodger/sneeze]
 
+NOTE: 1.x is Promise-based and requires hapi >= 17.x.
+
 
 # Quick Example
 
